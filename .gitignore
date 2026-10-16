@@ -1,0 +1,14 @@
+# Build artifacts
+build/
+*.o
+*.dSYM/
+
+# OS metadata
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# Temporary files
+*.tmp
+*.swp
