@@ -38,8 +38,9 @@ FRAMEWORKS=(
     "-framework" "QuartzCore"
 )
 
-# Compile
+# Compile Universal Binary (Apple Silicon arm64 + Intel x86_64)
 clang -fobjc-arc -O2 -Wall \
+    -arch arm64 -arch x86_64 \
     -mmacosx-version-min=12.0 \
     "${FRAMEWORKS[@]}" \
     "${SOURCES[@]}" \
