@@ -4,11 +4,19 @@ NSString * const kSettingsChangedNotification = @"ChillScreenSettingsChangedNoti
 
 static NSString * const kPrefHotkeyKey = @"ChillScreen_HotkeyKey";
 static NSString * const kPrefHotkeyModifiers = @"ChillScreen_HotkeyModifiers";
+static NSString * const kPrefRecordHotkeyKey = @"ChillScreen_RecordHotkeyKey";
+static NSString * const kPrefRecordHotkeyModifiers = @"ChillScreen_RecordHotkeyModifiers";
 static NSString * const kPrefSavePath = @"ChillScreen_SavePath";
 static NSString * const kPrefImageFormat = @"ChillScreen_ImageFormat";
 static NSString * const kPrefPlaySound = @"ChillScreen_PlaySound";
 static NSString * const kPrefAutoSave = @"ChillScreen_AutoSave";
 static NSString * const kPrefShowMagnifier = @"ChillScreen_ShowMagnifier";
+static NSString * const kPrefVideoFormat = @"ChillScreen_VideoFormat";
+static NSString * const kPrefVideoCodec = @"ChillScreen_VideoCodec";
+static NSString * const kPrefVideoFPS = @"ChillScreen_VideoFPS";
+static NSString * const kPrefVideoQuality = @"ChillScreen_VideoQuality";
+static NSString * const kPrefRecordAudio = @"ChillScreen_RecordAudio";
+static NSString * const kPrefShowMouseClicks = @"ChillScreen_ShowMouseClicks";
 
 @implementation SettingsManager
 
@@ -45,6 +53,19 @@ static NSString * const kPrefShowMagnifier = @"ChillScreen_ShowMagnifier";
         _hotkeyModifiers = (cmdKey | shiftKey); // 0x0300
     }
     
+    // Default record hotkey: Cmd + Shift + R (kVK_ANSI_R = 15)
+    if ([defaults objectForKey:kPrefRecordHotkeyKey]) {
+        _recordHotkeyKey = (UInt32)[defaults integerForKey:kPrefRecordHotkeyKey];
+    } else {
+        _recordHotkeyKey = kVK_ANSI_R;
+    }
+    
+    if ([defaults objectForKey:kPrefRecordHotkeyModifiers]) {
+        _recordHotkeyModifiers = (UInt32)[defaults integerForKey:kPrefRecordHotkeyModifiers];
+    } else {
+        _recordHotkeyModifiers = (cmdKey | shiftKey);
+    }
+    
     NSString *savedPath = [defaults stringForKey:kPrefSavePath];
     if (savedPath && savedPath.length > 0) {
         _saveFolderPath = savedPath;
@@ -57,17 +78,33 @@ static NSString * const kPrefShowMagnifier = @"ChillScreen_ShowMagnifier";
     _playSound = [defaults objectForKey:kPrefPlaySound] ? [defaults boolForKey:kPrefPlaySound] : YES;
     _autoSaveOnCopy = [defaults boolForKey:kPrefAutoSave];
     _showMagnifier = [defaults objectForKey:kPrefShowMagnifier] ? [defaults boolForKey:kPrefShowMagnifier] : YES;
+    
+    _videoFormat = [defaults stringForKey:kPrefVideoFormat] ?: @"MP4";
+    _videoCodec = [defaults stringForKey:kPrefVideoCodec] ?: @"HEVC";
+    _videoFPS = [defaults objectForKey:kPrefVideoFPS] ? [defaults integerForKey:kPrefVideoFPS] : 30;
+    if (_videoFPS != 30 && _videoFPS != 60) _videoFPS = 30;
+    _videoQuality = [defaults stringForKey:kPrefVideoQuality] ?: @"LIGHT";
+    _recordAudio = [defaults boolForKey:kPrefRecordAudio];
+    _showMouseClicks = [defaults objectForKey:kPrefShowMouseClicks] ? [defaults boolForKey:kPrefShowMouseClicks] : YES;
 }
 
 - (void)saveSettings {
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     [defaults setInteger:_hotkeyKey forKey:kPrefHotkeyKey];
     [defaults setInteger:_hotkeyModifiers forKey:kPrefHotkeyModifiers];
+    [defaults setInteger:_recordHotkeyKey forKey:kPrefRecordHotkeyKey];
+    [defaults setInteger:_recordHotkeyModifiers forKey:kPrefRecordHotkeyModifiers];
     [defaults setObject:_saveFolderPath forKey:kPrefSavePath];
     [defaults setObject:_imageFormat forKey:kPrefImageFormat];
     [defaults setBool:_playSound forKey:kPrefPlaySound];
     [defaults setBool:_autoSaveOnCopy forKey:kPrefAutoSave];
     [defaults setBool:_showMagnifier forKey:kPrefShowMagnifier];
+    [defaults setObject:_videoFormat forKey:kPrefVideoFormat];
+    [defaults setObject:_videoCodec forKey:kPrefVideoCodec];
+    [defaults setInteger:_videoFPS forKey:kPrefVideoFPS];
+    [defaults setObject:_videoQuality forKey:kPrefVideoQuality];
+    [defaults setBool:_recordAudio forKey:kPrefRecordAudio];
+    [defaults setBool:_showMouseClicks forKey:kPrefShowMouseClicks];
     [defaults synchronize];
     
     [[NSNotificationCenter defaultCenter] postNotificationName:kSettingsChangedNotification object:self];
@@ -76,18 +113,32 @@ static NSString * const kPrefShowMagnifier = @"ChillScreen_ShowMagnifier";
 - (void)resetToDefaults {
     _hotkeyKey = kVK_ANSI_A;
     _hotkeyModifiers = (cmdKey | shiftKey);
+    _recordHotkeyKey = kVK_ANSI_R;
+    _recordHotkeyModifiers = (cmdKey | shiftKey);
     NSString *picturesDir = [NSSearchPathForDirectoriesInDomains(NSPicturesDirectory, NSUserDomainMask, YES) firstObject];
     _saveFolderPath = [picturesDir stringByAppendingPathComponent:@"ChillScreen"];
     _imageFormat = @"PNG";
     _playSound = YES;
     _autoSaveOnCopy = NO;
     _showMagnifier = YES;
+    _videoFormat = @"MP4";
+    _videoCodec = @"HEVC";
+    _videoFPS = 30;
+    _videoQuality = @"LIGHT";
+    _recordAudio = NO;
+    _showMouseClicks = YES;
     [self saveSettings];
 }
 
 - (NSString *)formattedHotkeyString {
     NSString *modStr = [SettingsManager stringForCarbonModifiers:_hotkeyModifiers];
     NSString *keyStr = [SettingsManager stringForKeyCode:_hotkeyKey];
+    return [NSString stringWithFormat:@"%@ %@", modStr, keyStr];
+}
+
+- (NSString *)formattedRecordHotkeyString {
+    NSString *modStr = [SettingsManager stringForCarbonModifiers:_recordHotkeyModifiers];
+    NSString *keyStr = [SettingsManager stringForKeyCode:_recordHotkeyKey];
     return [NSString stringWithFormat:@"%@ %@", modStr, keyStr];
 }
 
@@ -109,6 +160,17 @@ static NSString * const kPrefShowMagnifier = @"ChillScreen_ShowMagnifier";
     
     NSString *ext = [_imageFormat.uppercaseString isEqualToString:@"JPG"] ? @"jpg" : @"png";
     NSString *filename = [NSString stringWithFormat:@"ChillScreen_%@.%@", timestamp, ext];
+    return [folder stringByAppendingPathComponent:filename];
+}
+
+- (NSString *)generateNewVideoFilePath {
+    NSString *folder = [self ensureSaveDirectoryExists];
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    formatter.dateFormat = @"yyyy-MM-dd_HH.mm.ss";
+    NSString *timestamp = [formatter stringFromDate:[NSDate date]];
+    
+    NSString *ext = [_videoFormat.uppercaseString isEqualToString:@"MOV"] ? @"mov" : @"mp4";
+    NSString *filename = [NSString stringWithFormat:@"ChillScreen_Video_%@.%@", timestamp, ext];
     return [folder stringByAppendingPathComponent:filename];
 }
 

@@ -85,7 +85,7 @@ static const CGFloat kHandleSize = 8.0;
 }
 
 - (void)setupToolbar {
-    _toolbar = [[AnnotationToolbarView alloc] initWithFrame:NSMakeRect(0, 0, 750, 44)];
+    _toolbar = [[AnnotationToolbarView alloc] initWithFrame:NSMakeRect(0, 0, 790, 44)];
     _toolbar.delegate = self;
     _toolbar.hidden = YES;
     [self addSubview:_toolbar];
@@ -530,6 +530,14 @@ static const CGFloat kHandleSize = 8.0;
         return;
     }
     
+    // Cmd + R: Record Video of Selection
+    if ((flags == NSEventModifierFlagCommand) && [event.charactersIgnoringModifiers isEqualToString:@"r"]) {
+        if (!NSIsEmptyRect(_selectionRect)) {
+            [self toolbarDidClickRecord];
+        }
+        return;
+    }
+    
     // Cmd + Z: Undo
     if ((flags == NSEventModifierFlagCommand) && [event.charactersIgnoringModifiers isEqualToString:@"z"]) {
         [self toolbarDidClickUndo];
@@ -767,6 +775,15 @@ static const CGFloat kHandleSize = 8.0;
     [self closeCapture];
     if ([self.delegate respondsToSelector:@selector(captureOverlay:didFinishWithImage:shouldSaveToFile:)]) {
         [self.delegate captureOverlay:self didFinishWithImage:finalImage shouldSaveToFile:YES];
+    }
+}
+
+- (void)toolbarDidClickRecord {
+    [self commitActiveText];
+    NSRect rectToRecord = _selectionRect;
+    [self closeCapture];
+    if ([self.delegate respondsToSelector:@selector(captureOverlay:didRequestRecordRect:)]) {
+        [self.delegate captureOverlay:self didRequestRecordRect:rectToRecord];
     }
 }
 

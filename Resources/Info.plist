@@ -13,9 +13,9 @@
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0.0</string>
+    <string>1.1.0</string>
     <key>CFBundleVersion</key>
-    <string>1</string>
+    <string>2</string>
     <key>CFBundleIconFile</key>
     <string>AppIcon</string>
     <key>LSMinimumSystemVersion</key>
@@ -26,5 +26,7 @@
     <true/>
     <key>NSScreenCaptureUsageDescription</key>
     <string>ChillScreen cần quyền chụp màn hình để hỗ trợ bạn chụp và chỉnh sửa ảnh màn hình theo vùng chọn.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>ChillScreen cần quyền truy cập Microphone để thu âm thanh khi quay video màn hình.</string>
 </dict>
 </plist>

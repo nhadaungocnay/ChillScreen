@@ -11,6 +11,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)toolbarDidClickRedo;
 - (void)toolbarDidClickCancel;
 - (void)toolbarDidClickSave;
+- (void)toolbarDidClickRecord;
 - (void)toolbarDidClickDone;
 @end
 

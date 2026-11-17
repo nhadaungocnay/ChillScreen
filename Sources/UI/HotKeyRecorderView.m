@@ -90,11 +90,11 @@
     _currentKeyCode = event.keyCode;
     _currentModifiers = carbonMods;
     
-    [self.window makeFirstResponder:nil];
-    
     if ([self.delegate respondsToSelector:@selector(hotKeyRecorderDidRecordKey:modifiers:)]) {
         [self.delegate hotKeyRecorderDidRecordKey:_currentKeyCode modifiers:_currentModifiers];
     }
+    
+    [self.window makeFirstResponder:nil];
 }
 
 - (void)setKeyCode:(UInt32)keyCode modifiers:(UInt32)modifiers {

@@ -19,11 +19,13 @@ SOURCES=(
     "Sources/AppDelegate.m"
     "Sources/HotKeyManager.m"
     "Sources/ScreenCaptureManager.m"
+    "Sources/ScreenRecorderManager.m"
     "Sources/SettingsManager.m"
     "Sources/Models/AnnotationItem.m"
     "Sources/UI/AnnotationToolbarView.m"
     "Sources/UI/CaptureOverlayView.m"
     "Sources/UI/OverlayWindow.m"
+    "Sources/UI/RecordingOverlayWindow.m"
     "Sources/UI/HotKeyRecorderView.m"
     "Sources/UI/SettingsWindowController.m"
 )
@@ -32,10 +34,14 @@ SOURCES=(
 FRAMEWORKS=(
     "-framework" "Cocoa"
     "-framework" "Carbon"
-    "-framework" "ScreenCaptureKit"
+    "-weak_framework" "ScreenCaptureKit"
     "-framework" "CoreGraphics"
     "-framework" "CoreImage"
     "-framework" "QuartzCore"
+    "-framework" "AVFoundation"
+    "-framework" "CoreMedia"
+    "-framework" "CoreVideo"
+    "-framework" "VideoToolbox"
 )
 
 # Compile Universal Binary (Apple Silicon arm64 + Intel x86_64)

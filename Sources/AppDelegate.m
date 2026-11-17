@@ -1,6 +1,7 @@
 #import "AppDelegate.h"
 #import "HotKeyManager.h"
 #import "ScreenCaptureManager.h"
+#import "ScreenRecorderManager.h"
 #import "SettingsManager.h"
 #import "UI/OverlayWindow.h"
 #import "UI/SettingsWindowController.h"
@@ -10,6 +11,8 @@
 @property (nonatomic, strong) NSStatusItem *statusItem;
 @property (nonatomic, strong) NSMenu *statusMenu;
 @property (nonatomic, strong, nullable) OverlayWindow *activeOverlayWindow;
+@property (nonatomic, strong, nullable) NSScreen *activeCaptureScreen;
+@property (nonatomic, strong, nullable) NSMenuItem *stopRecordingMenuItem;
 
 @end
 
@@ -32,7 +35,29 @@
             [weakSelf startAreaCapture];
         });
     };
+    hkm.onRecordHotKeyPressed = ^{
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if ([ScreenRecorderManager sharedManager].isRecording) {
+                [weakSelf stopRecording];
+            } else {
+                [weakSelf startAreaRecording];
+            }
+        });
+    };
     [hkm startListening];
+    
+    // Setup ScreenRecorder callbacks
+    ScreenRecorderManager *srm = [ScreenRecorderManager sharedManager];
+    srm.onRecordingTimerTick = ^(NSString *formattedTime) {
+        weakSelf.statusItem.button.title = [NSString stringWithFormat:@" 🔴 %@", formattedTime];
+        if (weakSelf.stopRecordingMenuItem) {
+            weakSelf.stopRecordingMenuItem.title = [NSString stringWithFormat:@"⏹ Dừng quay video (%@)", formattedTime];
+        }
+    };
+    srm.onRecordingFinished = ^(NSString * _Nullable outputPath, NSError * _Nullable error) {
+        weakSelf.statusItem.button.title = @"";
+        [weakSelf buildStatusMenu];
+    };
     
     // Listen for settings change to update menu shortcuts
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -73,10 +98,20 @@
 
 - (void)buildStatusMenu {
     _statusMenu = [[NSMenu alloc] initWithTitle:@"ChillScreen"];
+    _stopRecordingMenuItem = nil;
     
     SettingsManager *sm = [SettingsManager sharedManager];
-    NSString *hkTitle = [NSString stringWithFormat:@"Chụp vùng màn hình (%@)", [sm formattedHotkeyString]];
     
+    if ([ScreenRecorderManager sharedManager].isRecording) {
+        _stopRecordingMenuItem = [[NSMenuItem alloc] initWithTitle:@"⏹ Dừng quay video"
+                                                            action:@selector(stopRecording)
+                                                     keyEquivalent:@""];
+        _stopRecordingMenuItem.target = self;
+        [_statusMenu addItem:_stopRecordingMenuItem];
+        [_statusMenu addItem:[NSMenuItem separatorItem]];
+    }
+    
+    NSString *hkTitle = [NSString stringWithFormat:@"Chụp vùng màn hình (%@)", [sm formattedHotkeyString]];
     NSMenuItem *captureItem = [[NSMenuItem alloc] initWithTitle:hkTitle
                                                          action:@selector(startAreaCapture)
                                                   keyEquivalent:@""];
@@ -91,7 +126,22 @@
     
     [_statusMenu addItem:[NSMenuItem separatorItem]];
     
-    NSMenuItem *folderItem = [[NSMenuItem alloc] initWithTitle:@"Mở thư mục lưu ảnh"
+    NSString *recTitle = [NSString stringWithFormat:@"Quay vùng màn hình (%@)", [sm formattedRecordHotkeyString]];
+    NSMenuItem *recAreaItem = [[NSMenuItem alloc] initWithTitle:recTitle
+                                                         action:@selector(startAreaRecording)
+                                                  keyEquivalent:@""];
+    recAreaItem.target = self;
+    [_statusMenu addItem:recAreaItem];
+    
+    NSMenuItem *recFullItem = [[NSMenuItem alloc] initWithTitle:@"Quay toàn màn hình"
+                                                         action:@selector(startFullscreenRecording)
+                                                  keyEquivalent:@""];
+    recFullItem.target = self;
+    [_statusMenu addItem:recFullItem];
+    
+    [_statusMenu addItem:[NSMenuItem separatorItem]];
+    
+    NSMenuItem *folderItem = [[NSMenuItem alloc] initWithTitle:@"Mở thư mục lưu ảnh & video"
                                                         action:@selector(openSaveFolder)
                                                  keyEquivalent:@""];
     folderItem.target = self;
@@ -131,12 +181,13 @@
 }
 
 - (void)startAreaCapture {
-    if (_activeOverlayWindow) {
+    if (_activeOverlayWindow || [ScreenRecorderManager sharedManager].isRecording) {
         // Already active
         return;
     }
     
     NSScreen *screen = [self screenUnderMouse];
+    _activeCaptureScreen = screen;
     
     // Capture screen first
     NSImage *screenshot = [[ScreenCaptureManager sharedManager] captureScreenForDisplay:screen];
@@ -153,6 +204,28 @@
     
     [NSApp activateIgnoringOtherApps:YES];
     [_activeOverlayWindow makeKeyAndOrderFront:nil];
+}
+
+- (void)startAreaRecording {
+    if ([ScreenRecorderManager sharedManager].isRecording) {
+        [self stopRecording];
+        return;
+    }
+    [self startAreaCapture];
+}
+
+- (void)startFullscreenRecording {
+    if ([ScreenRecorderManager sharedManager].isRecording) {
+        [self stopRecording];
+        return;
+    }
+    NSScreen *screen = [self screenUnderMouse];
+    [[ScreenRecorderManager sharedManager] startRecordingScreen:screen cropRect:NSZeroRect];
+    [self buildStatusMenu];
+}
+
+- (void)stopRecording {
+    [[ScreenRecorderManager sharedManager] stopRecording];
 }
 
 - (void)startFullscreenCapture {
@@ -196,6 +269,18 @@
     } else {
         [scm copyImageToClipboard:image];
     }
+}
+
+- (void)captureOverlay:(CaptureOverlayView *)overlay didRequestRecordRect:(NSRect)rect {
+    NSScreen *targetScreen = _activeCaptureScreen ?: [self screenUnderMouse];
+    if (_activeOverlayWindow) {
+        [_activeOverlayWindow orderOut:nil];
+        _activeOverlayWindow = nil;
+    }
+    _activeCaptureScreen = nil;
+    
+    [[ScreenRecorderManager sharedManager] startRecordingScreen:targetScreen cropRect:rect];
+    [self buildStatusMenu];
 }
 
 #pragma mark - Menu Actions

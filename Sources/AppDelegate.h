@@ -7,6 +7,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)startAreaCapture;
 - (void)startFullscreenCapture;
+- (void)startAreaRecording;
+- (void)startFullscreenRecording;
+- (void)stopRecording;
 
 @end
 

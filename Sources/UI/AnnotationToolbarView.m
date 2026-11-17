@@ -259,11 +259,18 @@
     
     [_mainStack addArrangedSubview:[self createSeparator]];
     
-    // Actions: Cancel, Save, Copy
+    // Actions: Cancel, Record Video, Save, Copy
     NSButton *cancelBtn = [self createIconButtonWithSymbol:@"xmark" fallback:@"✕" tag:201 tooltip:@"Huỷ chụp (Esc)"];
     cancelBtn.target = self;
     cancelBtn.action = @selector(cancelClicked:);
     [_mainStack addArrangedSubview:cancelBtn];
+    
+    NSButton *recordBtn = [self createIconButtonWithSymbol:@"video.fill" fallback:@"🎥" tag:204 tooltip:@"Quay video vùng chọn (⌘R)"];
+    recordBtn.target = self;
+    recordBtn.action = @selector(recordClicked:);
+    recordBtn.layer.backgroundColor = [NSColor colorWithRed:1.0 green:0.23 blue:0.19 alpha:0.9].CGColor;
+    recordBtn.contentTintColor = [NSColor whiteColor];
+    [_mainStack addArrangedSubview:recordBtn];
     
     NSButton *saveBtn = [self createIconButtonWithSymbol:@"square.and.arrow.down" fallback:@"💾" tag:202 tooltip:@"Lưu file ảnh (⌘S)"];
     saveBtn.target = self;
@@ -368,6 +375,12 @@
 - (void)saveClicked:(id)sender {
     if ([self.delegate respondsToSelector:@selector(toolbarDidClickSave)]) {
         [self.delegate toolbarDidClickSave];
+    }
+}
+
+- (void)recordClicked:(id)sender {
+    if ([self.delegate respondsToSelector:@selector(toolbarDidClickRecord)]) {
+        [self.delegate toolbarDidClickRecord];
     }
 }
 

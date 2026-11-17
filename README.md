@@ -1,6 +1,6 @@
-# ChillScreen 📸
+# ChillScreen 📸🎥
 
-Ứng dụng chụp ảnh màn hình gọn nhẹ, chạy ẩn trên thanh Menu Bar cho macOS với đầy đủ tính năng tương tự Zalo / Snipaste / CleanShot X.
+Ứng dụng **chụp ảnh & quay video màn hình** gọn nhẹ, chạy ẩn trên thanh Menu Bar cho macOS (hỗ trợ cả Apple Silicon & Mac Intel - Universal Binary) với đầy đủ tính năng tương tự Zalo / Snipaste / CleanShot X.
 
 ---
 
@@ -10,8 +10,9 @@
    - Ứng dụng chạy ở chế độ `LSUIElement` (Accessory mode), không chiếm chỗ trên thanh Dock.
    - Luôn sẵn sàng trên thanh Menu Bar với biểu tượng máy ảnh hiện đại.
 
-2. **Phím tắt toàn hệ thống (Global Hotkey tùy chỉnh):**
-   - Mặc định: **`⌘ + ⇧ + A`** (Cmd + Shift + A, tương tự Zalo / Snipaste).
+2. **Phím tắt toàn hệ thống (Global Hotkeys tùy chỉnh):**
+   - Chụp ảnh mặc định: **`⌘ + ⇧ + A`** (Cmd + Shift + A).
+   - Quay video mặc định: **`⌘ + ⇧ + R`** (Cmd + Shift + R).
    - Cho phép người dùng bấm đổi phím tắt bất kỳ trong giao diện Cài đặt (Settings).
    - Sử dụng Carbon Event HotKey tốc độ cao, hoạt động mượt mà khi đang làm việc trong bất kỳ app nào khác.
 
@@ -34,10 +35,18 @@
    - Bảng 8 màu sắc hiện đại & 3 mức độ dày nét vẽ.
    - Hỗ trợ **Undo (⌘Z)** và **Redo (⇧⌘Z)** đầy đủ.
 
-5. **Cài đặt đường dẫn lưu ảnh linh hoạt (Storage & Settings):**
-   - Tùy chỉnh thư mục lưu ảnh tùy ý thông qua nút "Chọn thư mục...".
+5. **Quay Video Màn Hình Siêu Nhẹ & Sắc Nét (MP4 / MOV):**
+   - Hỗ trợ **Quay theo vùng tự kéo** (bấm nút 🎥 trên thanh công cụ hoặc `⌘R`) và **Quay toàn màn hình**.
+   - Xuất định dạng **`.mp4`** (gửi trực tiếp Zalo/Telegram/Web) hoặc **`.mov`** (QuickTime).
+   - Mã hóa phần cứng qua GPU với chuẩn **HEVC / H.265** (giảm 40-55% dung lượng) hoặc **H.264**.
+   - Công nghệ **Variable Frame Rate (VFR)** tự động bỏ qua khung hình tĩnh + Keyframe thông minh giúp file video cực nhẹ mà chữ/code vẫn sắc nét.
+   - Tùy chọn **30 FPS / 60 FPS**, độ nét **Siêu nhẹ / Retina**, thu âm **Microphone**.
+   - Tự động copy file video vào Clipboard ngay sau khi dừng quay (`⌘V` để gửi ngay).
+
+6. **Cài đặt đường dẫn lưu linh hoạt (Storage & Settings):**
+   - Tùy chỉnh thư mục lưu ảnh & video tùy ý thông qua nút "Chọn thư mục...".
    - Mặc định lưu tại `~/Pictures/ChillScreen`.
-   - Chọn định dạng xuất file: **PNG** (sắc nét) hoặc **JPG** (tối ưu dung lượng).
+   - Chọn định dạng xuất file: **PNG / JPG** (ảnh) và **MP4 / MOV** (video).
    - Bật/tắt tự động lưu ảnh khi bấm Copy (`Enter`).
    - Âm thanh màn trập chân thực (Camera shutter sound).
 
@@ -63,11 +72,13 @@ Sau đó bạn có thể mở `ChillScreen` từ Spotlight hoặc Launchpad.
 
 ---
 
-## ⌨️ Phím tắt khi chụp
+## ⌨️ Phím tắt khi chụp & quay
 
 | Phím | Hành động |
 | :--- | :--- |
 | **`⌘ + ⇧ + A`** | Kích hoạt chụp vùng màn hình từ bất kỳ đâu |
+| **`⌘ + ⇧ + R`** | Kích hoạt quay vùng màn hình / Dừng quay đang chạy |
+| **`⌘ + R`** | Bắt đầu quay video vùng đang chọn (khi đang mở khung) |
 | **`Enter`** hoặc **`⌘ + C`** | Hoàn thành & Sao chép ảnh vào Clipboard |
 | **`⌘ + S`** | Lưu trực tiếp vào thư mục ảnh đã cấu hình |
 | **`⌘ + Z`** | Hoàn tác (Undo) nét vẽ / chú thích trước |

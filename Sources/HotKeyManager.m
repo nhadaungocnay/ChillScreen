@@ -2,16 +2,20 @@
 #import "SettingsManager.h"
 
 static const OSType kChillScreenHotKeySignature = 'CHIL';
-static const UInt32 kChillScreenHotKeyID = 1;
+static const UInt32 kChillScreenHotKeyCaptureID = 1;
+static const UInt32 kChillScreenHotKeyRecordID = 2;
 
 static OSStatus CarbonHotKeyHandler(EventHandlerCallRef nextHandler, EventRef theEvent, void *userData) {
     EventHotKeyID hkID;
     GetEventParameter(theEvent, kEventParamDirectObject, typeEventHotKeyID, NULL, sizeof(hkID), NULL, &hkID);
-    if (hkID.signature == kChillScreenHotKeySignature && hkID.id == kChillScreenHotKeyID) {
+    if (hkID.signature == kChillScreenHotKeySignature) {
+        UInt32 pressedID = hkID.id;
         dispatch_async(dispatch_get_main_queue(), ^{
             HotKeyManager *manager = [HotKeyManager sharedManager];
-            if (manager.onHotKeyPressed) {
+            if (pressedID == kChillScreenHotKeyCaptureID && manager.onHotKeyPressed) {
                 manager.onHotKeyPressed();
+            } else if (pressedID == kChillScreenHotKeyRecordID && manager.onRecordHotKeyPressed) {
+                manager.onRecordHotKeyPressed();
             }
         });
     }
@@ -21,6 +25,7 @@ static OSStatus CarbonHotKeyHandler(EventHandlerCallRef nextHandler, EventRef th
 @interface HotKeyManager () {
     EventHandlerRef _eventHandlerRef;
     EventHotKeyRef _hotKeyRef;
+    EventHotKeyRef _recordHotKeyRef;
 }
 @end
 
@@ -70,6 +75,10 @@ static OSStatus CarbonHotKeyHandler(EventHandlerCallRef nextHandler, EventRef th
         UnregisterEventHotKey(_hotKeyRef);
         _hotKeyRef = NULL;
     }
+    if (_recordHotKeyRef) {
+        UnregisterEventHotKey(_recordHotKeyRef);
+        _recordHotKeyRef = NULL;
+    }
     if (_eventHandlerRef) {
         RemoveEventHandler(_eventHandlerRef);
         _eventHandlerRef = NULL;
@@ -81,22 +90,43 @@ static OSStatus CarbonHotKeyHandler(EventHandlerCallRef nextHandler, EventRef th
         UnregisterEventHotKey(_hotKeyRef);
         _hotKeyRef = NULL;
     }
+    if (_recordHotKeyRef) {
+        UnregisterEventHotKey(_recordHotKeyRef);
+        _recordHotKeyRef = NULL;
+    }
     
     SettingsManager *sm = [SettingsManager sharedManager];
-    EventHotKeyID hotKeyID;
-    hotKeyID.signature = kChillScreenHotKeySignature;
-    hotKeyID.id = kChillScreenHotKeyID;
+    
+    EventHotKeyID captureKeyID;
+    captureKeyID.signature = kChillScreenHotKeySignature;
+    captureKeyID.id = kChillScreenHotKeyCaptureID;
     
     OSStatus status = RegisterEventHotKey(sm.hotkeyKey,
-                                         sm.hotkeyModifiers,
-                                         hotKeyID,
-                                         GetApplicationEventTarget(),
-                                         0,
-                                         &_hotKeyRef);
+                                          sm.hotkeyModifiers,
+                                          captureKeyID,
+                                          GetApplicationEventTarget(),
+                                          0,
+                                          &_hotKeyRef);
     if (status != noErr) {
-        NSLog(@"[ChillScreen] Failed to register global hotkey (status: %d)", (int)status);
+        NSLog(@"[ChillScreen] Failed to register capture hotkey (status: %d)", (int)status);
     } else {
-        NSLog(@"[ChillScreen] Successfully registered global hotkey: %@", [sm formattedHotkeyString]);
+        NSLog(@"[ChillScreen] Registered capture hotkey: %@", [sm formattedHotkeyString]);
+    }
+    
+    EventHotKeyID recordKeyID;
+    recordKeyID.signature = kChillScreenHotKeySignature;
+    recordKeyID.id = kChillScreenHotKeyRecordID;
+    
+    OSStatus recStatus = RegisterEventHotKey(sm.recordHotkeyKey,
+                                             sm.recordHotkeyModifiers,
+                                             recordKeyID,
+                                             GetApplicationEventTarget(),
+                                             0,
+                                             &_recordHotKeyRef);
+    if (recStatus != noErr) {
+        NSLog(@"[ChillScreen] Failed to register record hotkey (status: %d)", (int)recStatus);
+    } else {
+        NSLog(@"[ChillScreen] Registered record hotkey: %@", [sm formattedRecordHotkeyString]);
     }
 }
 

@@ -9,6 +9,7 @@ NS_ASSUME_NONNULL_BEGIN
 @protocol CaptureOverlayDelegate <NSObject>
 - (void)captureOverlayDidCancel:(CaptureOverlayView *)overlay;
 - (void)captureOverlay:(CaptureOverlayView *)overlay didFinishWithImage:(NSImage *)image shouldSaveToFile:(BOOL)save;
+- (void)captureOverlay:(CaptureOverlayView *)overlay didRequestRecordRect:(NSRect)rect;
 @end
 
 @interface CaptureOverlayView : NSView <AnnotationToolbarDelegate, NSTextFieldDelegate>

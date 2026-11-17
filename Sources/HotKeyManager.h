@@ -8,6 +8,7 @@ typedef void (^HotKeyTriggerBlock)(void);
 @interface HotKeyManager : NSObject
 
 @property (nonatomic, copy, nullable) HotKeyTriggerBlock onHotKeyPressed;
+@property (nonatomic, copy, nullable) HotKeyTriggerBlock onRecordHotKeyPressed;
 
 + (instancetype)sharedManager;
 
